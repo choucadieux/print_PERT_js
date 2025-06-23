@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <title>PERT</title>
+
+  <script src="script.js"></script>
+
+</head>
+<body>
+  <div id="PERT-conteneur" class="PERT-conteneur">
+
+    <svg xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker
+          id="arrowhead"
+          markerWidth="3.33"
+          markerHeight="2.33"
+          refX="0"
+          refY="1.165"
+          orient="auto">
+          <polygon points="0,0 3.33,1.165 0,2.33" style="fill:#000000;" />
+        </marker>
+      </defs>
+    </svg>
+
+    <!--
+    <div class="PERT-task" id="task1">
+      <div class="PERT-titre">Tâche avec un nom qui est relativement long pour voir si cela fonctionne bien est s'affiche correctement, idem l'objectif est de rajouter une ou deux ligne afin de voir ce que cela fait lorsqu'on sort du cadre</div>
+      <div class="PERT-sous-partie">
+        <div class="PERT-sous-partie-gauche">RS001</div>
+        <div class="PERT-sous-partie-droite">1000 days</div>
+      </div>
+      <div class="PERT-sous-partie">
+        <div class="PERT-sous-partie-gauche">24 Janv 2025</div>
+        <div class="PERT-sous-partie-droite">24 Fevri 2025</div>
+      </div>
+    </div>
+
+    <div class="PERT-task" id="task2">
+      <div class="PERT-titre">Super Task 1</div>
+      <div class="PERT-sous-partie">
+        <div class="PERT-date-start">RS001</div>
+        <div class="PERT-periode">1000 days</div>
+      </div>
+      <div class="PERT-sous-partie">
+        <div class="PERT-date-start">24 Janv 2025</div>
+        <div class="PERT-date-end">24 Fevri 2025</div>
+      </div>
+    </div>
+    -->
+    <!--
+    <svg width="200" height="250" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20,230 Q40,205 50,230 T90,230" fill="none" stroke="blue" stroke-width="5"/>
+    </svg>
+
+    <svg width="300" height="200" id="svg1" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker
+          id="arrowhead"
+          markerWidth="3.33"
+          markerHeight="2.33"
+          refX="0"
+          refY="1.165"
+          orient="auto">
+          <polygon points="0,0 3.33,1.165 0,2.33" style="fill:#000000;" />
+        </marker>
+      </defs>
+      <path
+        style="fill:none;stroke:#000000;stroke-width:5;"
+        d="m 13.063389,80.301422 c 25.742561,0 51.485122,0 64.356403,13.896139 12.87128,13.896139 12.87128,41.687299 26.191078,55.583159 13.3198,13.89586 39.95834,13.89586 66.59741,13.89586"
+        id="path1"
+        marker-end="url(#arrowhead)"/>
+    </svg>
+
+    <svg id="svg2" xmlns="http://www.w3.org/2000/svg">
+      <path
+        style="fill:none;stroke:#000000;stroke-width:3;"
+        d="M 13.063389,80.301422 L 100,80.301422"
+        id="path1"
+        marker-end="url(#arrowhead)"/>
+    </svg>
+
+    <svg
+      width="200"
+      height="300"
+      id="svg1"
+      xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker
+          id="arrowhead"
+          markerWidth="3.33"
+          markerHeight="2.33"
+          refX="0"
+          refY="1.165"
+          orient="auto">
+          <polygon points="0,0 3.33,1.165 0,2.33" style="fill:#000000;" />
+        </marker>
+      </defs>
+      <path
+        style="fill:none;stroke:#000000;stroke-width:5;"
+        d="m 13.063389,80.301422 13.89586"
+        id="path1"
+        marker-end="url(#arrowhead)"/>
+    </svg>
+    -->
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+      const data = {
+        tache1: {
+          id: "rs001",
+          title: "Test créé par une HTML",
+          debut: "24 Janv 2025",
+          fin: "24 Janv 2025",
+          marge: 100,
+          pos_x: 900,
+          pos_y: 150,
+          marge: 0
+        },
+        tache2: {
+          id: "rs002",
+          title: "Super task 2",
+          debut: "24 Janv 2025",
+          fin: "24 Janv 2025",
+          marge: 300,
+          pos_x: 800,
+          pos_y: 300
+        },
+        tache3: {
+          id: "rs003",
+          title: "Autre valeur qui est super",
+          debut: "24 Janv 2025",
+          fin: "24 Janv 2025",
+          marge: 500,
+          pos_x: 200,
+          pos_y: 300
+        }
+      };
+
+      const data_pert = {
+        A : {
+          id: "rs001",
+          title: "Faire la mise en place pour une tâche =",
+          duree: 30,
+          marge: 0,
+          start: "24 Janv 2025",
+          finish: "24 Janv 2025",
+          mother : ["Start"],
+        },
+        B : {
+          id: "rs002",
+          title: "Automatiser dans javascript",
+          duree: 30,
+          marge: 0,
+          start: "24 Janv 2025",
+          finish: "24 Janv 2025",
+          mother : ["A"],
+        },
+        C : {
+          id: "rs003",
+          title: "Mettre en place Dags",
+          duree: 10,
+          marge: 0,
+          start: "24 Janv 2025",
+          finish: "24 Janv 2025",
+          mother : ["B"],
+        },
+        D : {
+          id: "rs004",
+          title: "Affichage correct de la posisition",
+          duree: 5,
+          marge: 0,
+          start: "24 Janv 2025",
+          finish: "24 Janv 2025",
+          mother : ["C", "A"]
+        },
+        E : {
+          id: "rs005",
+          title: "Faire rajouter les flèches",
+          duree: 74,
+          marge: 0,
+          start: "24 Janv 2025",
+          finish: "24 Janv 2025",
+          mother : ["Start"],
+        },
+        F : {
+          id: "rs006",
+          title: "Faire de la documentation",
+          duree: 14,
+          marge: 0,
+          start: "24 Janv 2025",
+          finish: "24 Janv 2025",
+          mother : ["A", "E"],
+        },
+        J : {
+          id: "rs008",
+          title: "Mettre sur git",
+          duree: 13,
+          marge: 0,
+          start: "24 Janv 2025",
+          finish: "24 Janv 2025",
+          mother : ["D", "F"],
+        }
+      }
+
+      const data_reduct = {
+        A : {mother : ["Start"]},
+        B : {mother : ["A"]},
+        C : {mother : ["B", "A"]},
+        D : {mother : ["C", "B", "A"]},
+        E : {mother : ["A", "J"]},
+        F : {mother : ["E", "D"]},
+        J : {mother : ["Start"]}
+      }
+
+      //const pert = new PERT();
+      //pert.printTasks(data);
+
+      const dico = {
+        A: { mother: [2, 4] },
+        B: { mother: [2, 6] },
+        C: { mother: [1, 3] },
+        D: { mother: [2, 4] },
+        E: { mother: [5, 7] },
+        F: { mother: [2, 6] },
+        G: { mother: [1, 3] },
+        H: { mother: [2, 4] }
+      };
+
+      const list = [
+          ['a', 'b', 'c', 'a'],
+          ['d', 'e', 'f', 'd'],
+          ['g', 'h', 'i', 'g'],
+          ['j', 'k', 'l', 'm'],
+          ['n', 'o', 'p', 'q'],
+          ['n', 'd', 'e', 't']
+      ]; 
+
+    function minimizeCrossings(layers, edges) {
+      const getNeighborsAbove = (nodeId, upperLayer, edgeMap) => {
+          return edgeMap.get(nodeId) || [];
+      };
+
+      // Crée une map: targetNodeId -> [sourceNodeIds]
+      const buildEdgeMap = (edges) => {
+        const map = new Map();
+        for (const [from, to] of edges) {
+          if (!map.has(to)) map.set(to, []);
+            map.get(to).push(from);
+          }
+          return map;
+      };
+
+      const edgeMap = buildEdgeMap(edges);
+
+      for (let i = 1; i < layers.length; i++) {
+        const upperLayer = layers[i - 1];
+        const upperPositions = Object.fromEntries(upperLayer.map((id, index) => [id, index]));
+        const currentLayer = layers[i];
+
+        const barycenters = currentLayer.map(nodeId => {
+          const neighbors = getNeighborsAbove(nodeId, upperLayer, edgeMap);
+          if (neighbors.length === 0) return { nodeId, barycenter: Infinity };
+            const avg = neighbors.reduce((sum, n) => sum + upperPositions[n], 0) / neighbors.length;
+            return { nodeId, barycenter: avg };
+          });
+
+          // Trie les nœuds selon leur barycentre
+          barycenters.sort((a, b) => a.barycenter - b.barycenter);
+          // Met à jour l’ordre dans le layer courant
+          layers[i] = barycenters.map(b => b.nodeId);
+        }
+
+    return layers;
+  }
+
+  const layers = [
+    ['A', 'B'],
+    ['C', 'D', 'E'],
+    ['F']
+];
+
+const edges = [
+    ['A', 'C'],
+    ['B', 'D'],
+    ['B', 'E'],
+    ['C', 'F'],
+    ['D', 'F']
+];
+
+
+
+      
+
+
+      // Trouver les clés avec la valeur précise dans le tableau `mere`
+      //const chaine = pert.chainManagement(data_reduct);
+      const pert = new PERT(data_pert);
+      const chaine = pert.printPERT(data_pert);
+      //console.log(chaine);
+      
+
+    });
+  </script>
+
+    
+</body>
+</html>

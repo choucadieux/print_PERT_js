@@ -1,0 +1,108 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+
+/* INITIALIZATION OF CONSTANTS */
+/* --------------------------- */
+:root {
+    --back-ground-text : orange;
+    --text-title-color : black;
+    --text-color       : black; 
+}
+
+/* START STYLE */
+/* ----------- */
+
+/* PERT-container
+ *  Style that controls the overall appearance of the container
+ *  including all tasks within it.
+ */
+.PERT-conteneur {
+    /* Shape */
+    position: relative;
+    width: 900px;
+    height: 90%;
+    
+    /* Overflow */
+    overflow-x: auto;
+    overflow-y: auto;
+
+    /* Other */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
+    margin: 20px;
+}
+
+/* PERT-conteneur svg
+ * Arrow management
+ */
+.PERT-conteneur svg {
+    position: absolute;
+}
+
+/* PERT-task
+ *  Style for individual tasks within the container.
+ */
+.PERT-task {
+    /* Shape */
+    width: 250px;
+    box-sizing: border-box;
+
+    /* Display */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+    /* Border */
+    border-radius: 10px 10px 0 0;
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+
+/* PERT-titre
+ *  Style for the title of each task.
+ */
+.PERT-titre {
+    /* Shape */
+    width: 100%;
+    max-height: 61px;
+    padding-bottom: 5px;
+
+    /* Overflow */
+    overflow: scroll;
+    
+    /* Text */
+    text-align: center;
+    font-weight: bold;
+    color:var(--text-title-color);
+    font-size: 1rem;
+
+    /* Border & Color */
+    border-radius: 10px 10px 0 0;
+    background-color: var(--back-ground-text);   
+}
+
+/* PERT-sous-partie
+ *  Style for the sub-parts of each task.
+ */
+.PERT-sous-partie {
+    /* Shape */
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    
+    /* Text */
+    font-size: 0.8rem;
+    color: var(--text-color);
+}
+
+
+/* PERT-sous-partie-droite and PERT-sous-partie-gauche
+ *  Styles for the right and left sub-parts of each task.
+ */
+.PERT-sous-partie-droite {padding-right: 10px}
+.PERT-sous-partie-gauche {padding-left : 10px}
