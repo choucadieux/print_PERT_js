@@ -11,9 +11,10 @@ class PERT {
 
   // Constructor 
   // -----------
-  constructor(dico_task) {
-    this.dico_task = dico_task;
-    this.path = [];
+  constructor(dico_task, date_start=0) {
+    this.dico_task = dico_task;  // dict           -> All the tasks
+    this.path = [];              // array<array<>> -> All the path 
+    this.date_start = date_start
   }
 
   /**
@@ -28,15 +29,89 @@ class PERT {
 
 
     this.path = this.chainManagement();
-
     this.rangPosition();
-    
     this.positionMap(); 
-    
+    this.addMarge();
     this.positionTask();
     this.printTasks(this.dico_task);
     this.addArrow();
-    this.addStartAndFinish(); 
+    this.addStartAndFinish();  // Function no Finish
+    
+
+    console.log(this.dico_task);
+
+  }
+
+  addMarge() {
+    this.addStartDate();
+    this.addFinishDate();
+    this.addMargeDate();
+ 
+  }
+
+  addMargeDate() {
+    for (const task of Object.values(this.dico_task)) {
+      task["marge"] = task["finish"] - task["start"];
+    }
+  }
+
+  addFinishDate() {
+    let value;
+    let somme;
+
+    for (const table of this.path) {
+      for (let i = table.length - 1; i >= 0; i--) {
+        value = table[i];
+
+        if (i === table.length - 1) {
+          somme = this.dico_task[value]["start"];
+          this.dico_task[value]["finish"] = somme;
+          somme -= this.dico_task[value]["duree"]
+        } else {
+          if ("finish" in this.dico_task[value]) {
+            if (somme < this.dico_task[value]["finish"]) { 
+              this.dico_task[value]["finish"] = somme;
+              somme -= this.dico_task[value]["duree"];
+            }
+          } else { 
+            this.dico_task[value]["finish"] = somme;
+            somme -= this.dico_task[value]["duree"];
+          }
+        }
+      }
+    }
+  }
+
+  addStartDate() {
+    let somme;
+    let value;
+
+    for (const table of this.path) {
+      for (let i=0; i < table.length; i++) {
+        
+        value = table[i];
+
+        if (i === 0) {
+          somme = this.dico_task[value]["duree"];
+          this.dico_task[value]["start"] = somme;
+          
+        } else {
+          if ("start" in this.dico_task[value]) {
+            if ((somme+this.dico_task[value]["duree"]) > this.dico_task[value]["start"]) {
+              somme += this.dico_task[value]["duree"]; 
+              this.dico_task[value]["start"] = somme;
+            }
+          } else {
+            somme += this.dico_task[value]["duree"]; 
+            this.dico_task[value]["start"] = somme;
+          }
+        }
+      }
+    }
+  }
+
+  isDate(value) {
+    return value instanceof Date;
   }
 
   /* ====================================================================================================
@@ -181,14 +256,14 @@ class PERT {
         `;
 
         // Add the SVG arrow to the DOM
-        this.addArrowInDom(taskHTML);
+        this.addInDom(taskHTML, "svg-container");
       }
     }
   }
 
 
   /**
-   * The addArrowInDom function adds the generated SVG arrow HTML to the DOM.
+   * The addInDom function adds the generated SVG arrow HTML to the DOM.
    * It creates a temporary div element, sets its inner HTML to the SVG arrow HTML,
    * and appends it to the container with the class "PERT-conteneur". If the container
    * is not found, it throws an error.
@@ -196,8 +271,8 @@ class PERT {
    * @param {string} taskHTML - The SVG arrow HTML to be added to the DOM.
    * @throws {Error} - Throws an error if the container with the class "PERT-conteneur" is not found.
    */
-  addArrowInDom(taskHTML) {
-    const container = document.querySelector('.PERT-conteneur');
+  addInDom(taskHTML, str_container) {
+    const container = document.getElementById(str_container);
     const tempDiv = document.createElement('div');
 
     // Set the inner HTML of the temporary div to the SVG arrow HTML
@@ -207,7 +282,7 @@ class PERT {
     if (container) {
       container.append(tempDiv);
     } else {
-      throw new Error('The container with the class "PERT-conteneur" was not found.');
+      throw new Error(`The container with the class ${str_container} was not found.`);
     }
   }
 
@@ -235,7 +310,7 @@ class PERT {
           ${text_start}
         </text>
       </svg>`;
-    this.addArrowInDom(taskHTML);
+    this.addInDom(taskHTML, "task-container");
 
     let bloc1; let bloc2;
     let div1;  let div2;
@@ -268,7 +343,7 @@ class PERT {
             marker-end="url(#arrowhead)"/>
         </svg>
       `;
-      this.addArrowInDom(taskHTML2); 
+      this.addInDom(taskHTML2, "svg-container"); 
     }
   }
 
@@ -373,9 +448,9 @@ class PERT {
   * @returns {void} - Displays the PERT chart in the DOM.
   */
   printTasks(tasks_obj) {
-    let taskHTML;
     for (let task_obj of Object.values(tasks_obj)) {
-        this.printTaskDict(task_obj);  // Displays each task
+        const taskHTML  = this.htmlTaskCreation(task_obj);  // Task
+        this.addInDom(taskHTML, "task-container");    // Displays each task
     } 
   }
 
@@ -397,6 +472,7 @@ class PERT {
   */
   htmlTaskCreation(task_obj) {
     // Error handling if tasks do not have the correct parameters
+    /*
     const requiredProperties = ['id', 'title', 'pos_x', 'pos_y', 'marge', 'start', 'finish'];
     
     // Check error
@@ -404,7 +480,7 @@ class PERT {
         if (task_obj[prop] === undefined) {  // If there is an error then display the error
             throw new Error(`The property "${prop}" is missing from the task object.`);
         }
-    };
+    }; */
 
     // Creating HTML for the DOM
     const taskHTML = `
@@ -420,8 +496,8 @@ class PERT {
           <div class="PERT-sous-partie-droite">${task_obj.marge}</div>
         </div>
         <div class="PERT-sous-partie">
-          <div class="PERT-sous-partie-gauche">${task_obj.debut}</div>
-          <div class="PERT-sous-partie-droite">${task_obj.fin}</div>
+          <div class="PERT-sous-partie-gauche">${task_obj.start}</div>
+          <div class="PERT-sous-partie-droite">${task_obj.finish}</div>
         </div>
       </div>
     `;
@@ -429,35 +505,6 @@ class PERT {
     // Return
     return taskHTML;
   }
-
-
-  /**
-  * Displays a task in the DOM.
-  *
-  * This function creates an HTML representation of a task using `htmlTaskCreation` and appends it to the PERT chart container.
-  *
-  * @param {Object} task_obj - The task object to be added to the PERT diagram.
-  * @returns {void} - Displays the task in the DOM.
-  * @throws {Error} - Throws an error if the container with the class "PERT-conteneur" does not exist.
-  */
-  printTaskDict(task_obj) {
-    // Initialisation param
-    const taskHTML  = this.htmlTaskCreation(task_obj);            // Task 
-    const container = document.querySelector('.PERT-conteneur');
-    const tempDiv   = document.createElement('div');
-    
-    // Code
-    tempDiv.innerHTML = taskHTML;
-    
-    // Adding data to the DOM if it exists else print error
-    if (container) {
-      container.append(tempDiv);
-    } else {
-      throw new Error('The container with the class "PERT-conteneur" was not found.');
-    }
-  }
-
-
 
   /**
    * The findSequence function searches for a specific sequence of elements within a 2D array.
@@ -482,7 +529,6 @@ class PERT {
     }
     return null; // Returns null if the sequence is not found
   }
-
 
   /**
   * Checks if there are any duplicate elements in the given array.
@@ -533,7 +579,6 @@ class PERT {
     return { firstElements, lastElements, position };
   }
   
-
   algothmDags(twoDList) {
     const list_first_last = this.getFirstAndLastElements(twoDList);
     let array = [];
@@ -638,8 +683,8 @@ class PERT {
       return a;
     } else {
       return b;
+    }
   }
-}
 
 
 }

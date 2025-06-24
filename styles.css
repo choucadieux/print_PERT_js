@@ -26,7 +26,7 @@ body {
     /* Shape */
     position: relative;
     width: 900px;
-    height: 90%;
+    height: 50%;
     
     /* Overflow */
     overflow-x: auto;
@@ -96,7 +96,7 @@ body {
     justify-content: space-between;
     
     /* Text */
-    font-size: 0.8rem;
+    font-size: 1rem;
     color: var(--text-color);
 }
 
