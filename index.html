@@ -11,21 +11,7 @@
 </head>
 <body>
   <div id="PERT-conteneur" class="PERT-conteneur">
-    <div id="svg-container" style="position: absolute; top: 0; left: 0; z-index: 1;">
-      <svg xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <marker
-            id="arrowhead"
-            markerWidth="3.33"
-            markerHeight="2.33"
-            refX="0"
-            refY="1.165"
-            orient="auto">
-            <polygon points="0,0 3.33,1.165 0,2.33" style="fill:#000000;" />
-          </marker>
-        </defs>
-      </svg>
-    </div>
+    <div id="svg-container" style="position: absolute; top: 0; left: 0; z-index: 1;"></div>
     <div id="task-container" style="position: absolute; top: 0; left: 0; z-index: 2;"></div>
   </div>
 
@@ -38,75 +24,55 @@
           id: "rs001",
           title: "Faire la mise en place pour une tâche =",
           duree: 30,
-          marge: 0,
           mother : ["Start"],
         },
         B : {
           id: "rs002",
           title: "Automatiser dans javascript",
           duree: 30,
-          marge: 0,
           mother : ["A"],
         },
         C : {
           id: "rs003",
           title: "Mettre en place Dags",
           duree: 10,
-          marge: 0,
           mother : ["B"],
         },
         D : {
           id: "rs004",
           title: "Affichage correct de la posisition",
           duree: 5,
-          marge: 0,
           mother : ["C", "A"]
         },
         E : {
           id: "rs005",
           title: "Faire rajouter les flèches",
           duree: 74,
-          marge: 0,
           mother : ["Start"],
         },
         F : {
           id: "rs006",
           title: "Faire de la documentation",
           duree: 14,
-          marge: 0,
-          start: 0,
           mother : ["A", "E"],
         },
         J : {
           id: "rs008",
           title: "Mettre sur git",
           duree: 13,
-          marge: 0,
           mother : ["D", "F"],
         }
-      }
-
-      const data_reduct = {
-        A : {mother : ["Start"]},
-        B : {mother : ["A"]},
-        C : {mother : ["B", "A"]},
-        D : {mother : ["C", "B", "A"]},
-        E : {mother : ["A", "J"]},
-        F : {mother : ["E", "D"]},
-        J : {mother : ["Start"]}
       }
       
       const specificDate = new Date('2023-10-05');
 
-      // Trouver les clés avec la valeur précise dans le tableau `mere`
-      //const chaine = pert.chainManagement(data_reduct);
-      const pert = new PERT(data_pert, specificDate);
+      const pert = new PERT(specificDate);
       const chaine = pert.printPERT(data_pert);
-      //console.log(chaine);
-      
-
     });
   </script>
+
+
+
 
     
 </body>

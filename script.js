@@ -1,3 +1,18 @@
+/* Todo List
+ * =========  
+ *
+ * Error management 
+ * ----------------
+ *  - findKeysWithValueInMere -> key don't exist
+ *  - max                     -> if don't number 
+ * 
+ * Other add
+ * ---------
+ *  - critical path
+ *  - other vision
+ *
+ */
+
 class PERT {
   // Constant initialization 
   // -----------------------
@@ -11,10 +26,10 @@ class PERT {
 
   // Constructor 
   // -----------
-  constructor(dico_task, date_start=0) {
-    this.dico_task = dico_task;  // dict           -> All the tasks
+  constructor(date_start=0) {
+    this.date_start = date_start;
+    this.dico_task;  // dict           -> All the tasks
     this.path = [];              // array<array<>> -> All the path 
-    this.date_start = date_start
   }
 
   /**
@@ -24,25 +39,27 @@ class PERT {
   *
   * @returns {void} - Displays the PERT chart in the DOM.
   */
-  printPERT() {
-    let liste_value_per_rank;
+  printPERT(dico_task) {
+    // initialisation
+    this.dico_task = dico_task
 
-
+    // programme
     this.path = this.chainManagement();
     this.rangPosition();
-    this.positionMap(); 
-    this.addMarge();
-    this.positionTask();
+    this.addPositionTask(); 
+    this.dateManagement();
     this.printTasks(this.dico_task);
     this.addArrow();
     this.addStartAndFinish();  // Function no Finish
-    
-
-    console.log(this.dico_task);
 
   }
 
-  addMarge() {
+  addPositionTask() {
+    this.RangTask();
+    this.positionTask();
+  }
+
+  dateManagement() {
     this.addStartDate();
     this.addFinishDate();
     this.addMargeDate();
@@ -55,32 +72,62 @@ class PERT {
     }
   }
 
-  addFinishDate() {
-    let value;
-    let somme;
+  addStartDate() {
+    for (const path of this.path) {
+      let cumulativeStart;
 
-    for (const table of this.path) {
-      for (let i = table.length - 1; i >= 0; i--) {
-        value = table[i];
-
-        if (i === table.length - 1) {
-          somme = this.dico_task[value]["start"];
-          this.dico_task[value]["finish"] = somme;
-          somme -= this.dico_task[value]["duree"]
+      for (let i = 0; i < path.length; i++) {
+        const taskName = path[i];
+        const task = this.dico_task[taskName];
+        
+        // Première tâche du chemin
+        if (i === 0) {
+          cumulativeStart = task.duree;
+          task.start = cumulativeStart;
         } else {
-          if ("finish" in this.dico_task[value]) {
-            if (somme < this.dico_task[value]["finish"]) { 
-              this.dico_task[value]["finish"] = somme;
-              somme -= this.dico_task[value]["duree"];
-            }
-          } else { 
-            this.dico_task[value]["finish"] = somme;
-            somme -= this.dico_task[value]["duree"];
+          cumulativeStart += task.duree;
+
+          // Si une date de début existe déjà, on garde la plus grande (le plus tard)
+          if ('start' in task) {
+            task.start = this.max(task.start, cumulativeStart);
+          } else {
+            task.start = cumulativeStart;
           }
         }
       }
     }
   }
+
+  addFinishDate() {
+    for (const path of this.path) {
+      let cumulativeFinish;
+
+      // Parcours du chemin à l'envers
+      for (let i = path.length - 1; i >= 0; i--) {
+        const taskName = path[i];
+        const task = this.dico_task[taskName];
+
+        // Dernière tâche du chemin
+        if (i === path.length - 1) {
+          cumulativeFinish = task.start;
+          task.finish = cumulativeFinish;
+          cumulativeFinish -= task.duree;
+        } else {
+          // Si une date de fin existe, on prend la plus petite (le plus tôt)
+          if ('finish' in task) {
+            if (cumulativeFinish < task.finish) {
+              task.finish = cumulativeFinish;
+              cumulativeFinish -= task.duree;
+            }
+          } else {
+            task.finish = cumulativeFinish;
+            cumulativeFinish -= task.duree;
+          }
+        }
+      }
+    }
+  }
+
 
   addStartDate() {
     let somme;
@@ -155,7 +202,8 @@ class PERT {
       );
     }
 
-    // Validate the configuration of the start tasks
+    // TODO : Don't remerber this code
+    /* Validate the configuration of the start tasks
     for (const key of firstElementArray) {
       const motherLength = this.dico_task[key]["mother"].length;
       if (motherLength !== 1) {
@@ -164,7 +212,7 @@ class PERT {
           Targeting data on the first task is incorrect for key: ${key}`
           );
       }
-    }
+    } */
 
     return firstElementArray;
   }
@@ -192,7 +240,6 @@ class PERT {
       for (const liste of twoDList) {
         // Attempt to add an element to the current path
         continued = this.addElementInPath(twoDList, liste) || continued;
-
         // Check for cycles in the data and remove them if found
         try {
           this.checkCycleData(twoDList);
@@ -223,6 +270,24 @@ class PERT {
     let x_start, x_inter, x_finish;
     let y_start, y_finish;
 
+    taskHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker
+            id="arrowhead"
+            markerWidth="3.33"
+            markerHeight="2.33"
+            refX="0"
+            refY="1.165"
+            orient="auto">
+            <polygon points="0,0 3.33,1.165 0,2.33" style="fill:#000000;" />
+          </marker>
+        </defs>
+      </svg>
+    `
+    // Add the SVG arrow to the DOM
+    this.addInDom(taskHTML, "svg-container");
+
     // Iterate over each path in the path array
     for (const array of this.path) {
       // Iterate over each task in the current path, except the last one
@@ -243,7 +308,7 @@ class PERT {
         // Create the SVG arrow HTML
         taskHTML = `
           <svg
-            id="svg${i}"
+            id="svg${this.dico_task[array[i]]["id"]}_${this.dico_task[array[i+1]]["id"]}"
             xmlns="http://www.w3.org/2000/svg"
             width="${this.max(x_start, x_finish) + 50}px"
             height="${this.max(y_start, y_finish) + 50}px">
@@ -348,7 +413,7 @@ class PERT {
   }
 
 
-  positionMap() {
+  RangTask() {
     const dico_number = {};
     let number;
     let task;
@@ -472,7 +537,6 @@ class PERT {
   */
   htmlTaskCreation(task_obj) {
     // Error handling if tasks do not have the correct parameters
-    /*
     const requiredProperties = ['id', 'title', 'pos_x', 'pos_y', 'marge', 'start', 'finish'];
     
     // Check error
@@ -480,7 +544,7 @@ class PERT {
         if (task_obj[prop] === undefined) {  // If there is an error then display the error
             throw new Error(`The property "${prop}" is missing from the task object.`);
         }
-    }; */
+    };
 
     // Creating HTML for the DOM
     const taskHTML = `
@@ -558,7 +622,7 @@ class PERT {
     for (let i = 0; i < twoDList.length; i++) {
       // Check if the current sub-array has duplicates
       if (this.hasDuplicates(twoDList[i])) {
-        throw new Error(`Cycle detected in path at index ${i}: infinite loop risk.`);
+        throw new Error(`Cycle detected in path ${twoDList[i]}: infinite loop risk.`);
       }
     }
   }
@@ -624,21 +688,24 @@ class PERT {
   addElementInPath(twoDList, path) {
     // Initialization
     let wasFirstChildAdded = false;
-    let continued = false;
-    const lastElement = path[path.length - 1];
+    let continued = false;    
     const savedPath = [...path];
+    const lastElement = path[path.length - 1];
     const children = this.findKeysWithValueInMere(lastElement);
 
     // Add each child to the path
     for (const child of children) {
       if (!wasFirstChildAdded) {
+        
         // Add to existing branch
         const index = twoDList.findIndex(row => row[row.length - 1] === lastElement);
+        
         if (index !== -1) {
           twoDList[index].push(child);
           continued = true;
           wasFirstChildAdded = true;
         }
+      
       } else {
         // Create a new branch with the same base path and the new child
         const newPath = [...savedPath, child];
@@ -675,16 +742,20 @@ class PERT {
   * @returns {number} The maximum of the two numbers.
   *
   * @example
-  * const maxValue = max(10, 20);
-  * console.log(maxValue); // Output: 20
+  * >>> const maxValue = max(10, 20);
+  * 20
   */
   max(a, b) {
-    if (a > b) {
-      return a;
-    } else {
-      return b;
-    }
+    return a > b ? a : b;
   }
 
 
+}
+
+// Export pour Node.js (Jest) ou rien pour HTML
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+  module.exports = PERT;
+} else {
+  // On rend disponible dans le navigateur
+  window.PERT = PERT;
 }
