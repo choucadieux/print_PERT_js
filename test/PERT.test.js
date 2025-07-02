@@ -276,3 +276,40 @@ describe('Testing the method checkCycleData', () => {
   });
 });
 
+
+describe('Test the method hasDuplicates', () => {
+  let pert;
+  let array;
+
+  beforeEach(() => {
+    pert = new PERT();
+  });
+
+  test('hasDuplicates detected correctly if there are NO duplicates return False', () => {
+    expect(pert.hasDuplicates(['A', 'B', 'C'])).toBe(false);
+  });
+
+  test('hasDuplicates detected correctly if there are duplicates return True', () => {
+    expect(pert.hasDuplicates(['A', 'B', 'A'])).toBe(true);
+  })
+});
+
+
+describe('Test the method getFirstAndLastElements', () => {
+  let pert;
+  let array2D;
+
+  beforeEach(() => {
+    pert = new PERT();
+    array2D = [["A","B"], ["E", "F", "K"], ["A", "D", "J"], ["A", "F"]];
+  });
+
+  test('getFirstAndLastElements  is correctly', () => {
+    expect(pert.getFirstAndLastElements(array2D)).toEqual({"firstElements": ["E","A"], "lastElements": ["K", "J"], "position": [1, 2]});
+  })  
+
+});
+
+
+
+

@@ -90,7 +90,14 @@ This JavaScript library aims to create a PERT diagram quickly and intuitively.
 </script>
 ```
 
-There is still a lot of work to be done to complete this library.
+There is also the possibility of adding critical paths in red.
+
+![Critique Path](./images/PERT_critique_path.png "Critique Path")
+
+## Next Steps
+
+- Add a view with a classic PERT diagram  
+- Add a view showing the progress of each task
 
 
 # 📌 Le Diagramme de PERT
@@ -187,4 +194,11 @@ Cette bibliothèque javascript a pour objectif de créer un diagramme PERT de fa
   </script>
 ```
 
-Il reste encore beaucoup de travail pour finir cette bibliothèque.
+Il y a aussi la possibilité de rajouter les chemins critiques en rouge. 
+
+![Critique Path](./images/PERT_critique_path.png "Critique Path")
+
+## Prochaines étapes
+
+- Ajouter une vue avec un diagramme de PERT classique  
+- Ajouter une vue affichant l’avancement de chaque tâche

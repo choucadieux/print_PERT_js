@@ -26,7 +26,7 @@ body {
     /* Shape */
     position: relative;
     width: 900px;
-    height: 50%;
+    height: 300px;
     
     /* Overflow */
     overflow-x: auto;
@@ -49,7 +49,7 @@ body {
  */
 .PERT-task {
     /* Shape */
-    width: 250px;
+    width: 200px;
     box-sizing: border-box;
 
     /* Display */
@@ -94,7 +94,7 @@ body {
     width: 100%;
     display: flex;
     justify-content: space-between;
-    
+    background: white;
     /* Text */
     font-size: 1rem;
     color: var(--text-color);

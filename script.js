@@ -17,19 +17,22 @@ class PERT {
   // Constant initialization 
   // -----------------------
   static OFFSET_HEIGHT = 75;  // int -> Offset for the first task in height
-  static OFFSET_WIDTH  = 250; // int -> Offset for the first task in width 
+  static OFFSET_WIDTH  = 200; // int -> Offset for the first task in width 
   static DIFF_HEIGHT   = 100; // int -> Space between each task in height
-  static DIFF_WIDTH    = 350; // int -> Space between each task in width
+  static DIFF_WIDTH    = 300; // int -> Space between each task in width
   static SEP_TASK_ARROW_START  = 10;  // int -> Space between task and arrow 
   static SEP_TASK_ARROW_FINISH = -15; // int -> Space between task and arrow 
   static STARTVALUE = "Start";        // str -> Name of fisrt element
+  static COLOR_CRITICAL_PATH = "#FF0000";
 
   // Constructor 
   // -----------
-  constructor(date_start=0) {
+  constructor(date_start=0, conteneur) {
     this.date_start = date_start;
+    this.conteneur  = conteneur;
     this.dico_task;  // dict           -> All the tasks
     this.path = [];              // array<array<>> -> All the path 
+
   }
 
   /**
@@ -50,8 +53,83 @@ class PERT {
     this.dateManagement();
     this.printTasks(this.dico_task);
     this.addArrow();
+    this.reorderElements();
     this.addStartAndFinish();  // Function no Finish
 
+
+  }
+
+  criticalPath() {
+    for (const array1D of this.path) {
+      for (let i in array1D) {
+        if ((i == 0) && (this.dico_task[array1D[i]]["marge"] === 0)) {
+          this.changeStrokeColor(`svg_${this.dico_task[array1D[i]]["id"]}`, PERT.COLOR_CRITICAL_PATH);
+        }  
+        if ((i != 0) && (this.dico_task[array1D[i]]["marge"] === 0) && (this.dico_task[array1D[i-1]]["marge"] === 0)) {
+          this.changeStrokeColor(
+            `svg_${this.dico_task[array1D[i-1]]["id"]}_${this.dico_task[array1D[i]]["id"]}`, 
+            PERT.COLOR_CRITICAL_PATH
+          );
+        }
+      }
+    }
+     
+
+  }
+
+  changeStrokeColor(svgId, newStrokeColor) {
+    // Sélectionnez l'élément conteneur par son ID
+    const containerElement = document.getElementById(this.conteneur);
+
+    if (!containerElement) {
+      console.error(`Container element with ID ${this.conteneur} not found.`);
+      return;
+    }
+
+    // Sélectionnez l'élément SVG par son ID à l'intérieur du conteneur
+    const svgElement = containerElement.querySelector(`#${svgId}`);
+
+    if (!svgElement) {
+      console.error(`No SVG element found with ID ${svgId}`);
+      return;
+    }
+
+    // Sélectionnez l'élément path à l'intérieur du SVG
+    const pathElement = svgElement.querySelector('path');
+
+    if (!pathElement) {
+      console.error(`No path element found in SVG with ID ${svgId}`);
+      return;
+    }
+
+    // Supprimez l'attribut marker-end
+    pathElement.removeAttribute('marker-end');
+
+    // Sélectionnez ou créez l'élément defs
+    let defsElement = svgElement.querySelector('defs');
+    if (!defsElement) {
+      defsElement = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      svgElement.appendChild(defsElement);
+    }
+
+    // Créez un nouvel élément marker avec la couleur souhaitée
+    const newMarker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+    newMarker.setAttribute('id', 'new-arrowhead');
+    newMarker.setAttribute('markerWidth', '3.33');
+    newMarker.setAttribute('markerHeight', '2.33');
+    newMarker.setAttribute('refX', '0');
+    newMarker.setAttribute('refY', '1.165');
+    newMarker.setAttribute('orient', 'auto');
+    newMarker.innerHTML = `<polygon points="0,0 3.33,1.165 0,2.33" style="fill:${newStrokeColor};" />`;
+
+    // Ajoutez le nouvel élément marker à l'élément defs
+    defsElement.appendChild(newMarker);
+
+    // Modifiez l'attribut stroke de l'élément path
+    pathElement.setAttribute("style", `fill:none;stroke:${newStrokeColor};stroke-width:3;`);
+
+    // Mettez à jour l'attribut marker-end de l'élément path
+    pathElement.setAttribute('marker-end', 'url(#new-arrowhead)');
   }
 
   addPositionTask() {
@@ -97,6 +175,8 @@ class PERT {
       }
     }
   }
+
+  
 
   addFinishDate() {
     for (const path of this.path) {
@@ -269,59 +349,62 @@ class PERT {
     let div1, div2;
     let x_start, x_inter, x_finish;
     let y_start, y_finish;
-
-    taskHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <marker
-            id="arrowhead"
-            markerWidth="3.33"
-            markerHeight="2.33"
-            refX="0"
-            refY="1.165"
-            orient="auto">
-            <polygon points="0,0 3.33,1.165 0,2.33" style="fill:#000000;" />
-          </marker>
-        </defs>
-      </svg>
-    `
-    // Add the SVG arrow to the DOM
-    this.addInDom(taskHTML, "svg-container");
+    let element;
+    const liste = [];
+    const containerElement = document.getElementById(this.conteneur);
 
     // Iterate over each path in the path array
     for (const array of this.path) {
       // Iterate over each task in the current path, except the last one
       for (let i = 0; i < array.length - 1; i++) {
         // Get the HTML elements for the current and next tasks
-        div1 = document.getElementById(this.dico_task[array[i]]["id"]);
-        div2 = document.getElementById(this.dico_task[array[i + 1]]["id"]);
+        div1 = containerElement.querySelector(`#${this.dico_task[array[i]]["id"]}`);
+        div2 = containerElement.querySelector(`#${this.dico_task[array[i + 1]]["id"]}`);
 
-        // Calculate the starting and finishing x-coordinates
-        x_start = div1.offsetLeft + div1.offsetWidth;
-        x_finish = div2.offsetLeft;
-        x_inter = (x_start + x_finish) / 2;
+        element = `svg_${this.dico_task[array[i]]["id"]}_${this.dico_task[array[i+1]]["id"]}`
 
-        // Calculate the starting and finishing y-coordinates
-        y_start = div1.offsetTop + div1.offsetHeight / 2;
-        y_finish = div2.offsetTop + div2.offsetHeight / 2;
+        if (!liste.includes(element)) {
+          // Calculate the starting and finishing x-coordinates
+          x_start = div1.offsetLeft + div1.offsetWidth;
+          x_finish = div2.offsetLeft;
+          x_inter = (x_start + x_finish) / 2;
 
-        // Create the SVG arrow HTML
-        taskHTML = `
-          <svg
-            id="svg${this.dico_task[array[i]]["id"]}_${this.dico_task[array[i+1]]["id"]}"
-            xmlns="http://www.w3.org/2000/svg"
-            width="${this.max(x_start, x_finish) + 50}px"
-            height="${this.max(y_start, y_finish) + 50}px">
-            <path
-              style="fill:none;stroke:#000000;stroke-width:3;"
-              d="M${x_start + 10},${y_start} C${x_inter},${y_start} ${x_inter},${y_finish} ${x_finish - 15},${y_finish}"
-              id="path1"
-              marker-end="url(#arrowhead)"/>
-          </svg>
-        `;
+          // Calculate the starting and finishing y-coordinates
+          y_start = div1.offsetTop + div1.offsetHeight / 2;
+          y_finish = div2.offsetTop + div2.offsetHeight / 2;
 
-        // Add the SVG arrow to the DOM
-        this.addInDom(taskHTML, "svg-container");
+          // Create the SVG arrow HTML
+          taskHTML = `
+            <svg
+              id=${element}
+              xmlns="http://www.w3.org/2000/svg"
+              width="${this.max(x_start, x_finish) + 50}px"
+              height="${this.max(y_start, y_finish) + 50}px">
+
+              <defs>
+                <marker
+                  id="arrowhead"
+                  markerWidth="3.33"
+                  markerHeight="2.33"
+                  refX="0"
+                  refY="1.165"
+                  orient="auto">
+                  <polygon points="0,0 3.33,1.165 0,2.33" style="fill:#000000;" />
+                </marker>
+              </defs>
+
+              <path
+                style="fill:none;stroke:#000000;stroke-width:3;"
+                d="M${x_start + 10},${y_start} C${x_inter},${y_start} ${x_inter},${y_finish} ${x_finish - 15},${y_finish}"
+                id="path_${this.dico_task[array[i]]["id"]}_${this.dico_task[array[i+1]]["id"]}"
+                marker-end="url(#arrowhead)"/>
+            </svg>
+          `;
+
+          // Add the SVG arrow to the DOM
+          this.addInDom(taskHTML, this.conteneur);
+          liste.push(element)
+        }
       }
     }
   }
@@ -359,33 +442,53 @@ class PERT {
     const max_height = PERT.DIFF_HEIGHT * max_item_col;
     const max_weight = PERT.DIFF_WIDTH  * max_item_rank;
     const decal      = 80;
-    const squareSize = 90;
+    const squareSize = 50;
     const text_start = "Start"
-
-    // Simple rect element
+    const containerElement = document.getElementById(this.conteneur);
+    /* Simple rect element
     const taskHTML = `
-      <svg height="${max_height+squareSize+30}" width="${decal+squareSize+30}" xmlns="http://www.w3.org/2000/svg">
-        <rect x="75" y="${max_height/2+50}" id="Start"
+      <svg height="${max_height + squareSize + 30}" width="${decal + squareSize + 30}" xmlns="http://www.w3.org/2000/svg">
+        <rect x="75" y="${max_height / 2 + 50}" id="Start"
               width="${squareSize}" height="${squareSize}"
               transform="rotate(45 ${squareSize} ${squareSize})"
               fill="none" stroke="var(--back-ground-text)" stroke-width="3" />
-        <text x="${decal-10}" y="${max_height+squareSize/2+10}" 
-              text-anchor="middle" alignment-baseline="middle" 
+        <text x="${decal + squareSize / 2}" y="${max_height + squareSize / 2 + 50}"
+              text-anchor="middle" alignment-baseline="middle"
               fill="black" font-size="20" font-weight="bold">
           ${text_start}
         </text>
       </svg>`;
-    this.addInDom(taskHTML, "task-container");
+    this.addInDom(taskHTML, this.conteneur); */
+
+    const taskHTML = `
+      <svg height="${max_height + squareSize * 2}" width="${decal + squareSize * 2}" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="${decal},${max_height-squareSize} 
+                         ${decal+squareSize},${max_height} 
+                         ${decal},${max_height+squareSize}
+                         ${decal-squareSize},${max_height}" 
+                         fill="none" 
+                         stroke="var(--back-ground-text)" 
+                         stroke-width="3" 
+                         id="Start" />
+        <text x="${decal}" y="${max_height}" text-anchor="middle" alignment-baseline="middle" fill="var(--back-ground-text)" font-size="20" font-weight="bold">
+          Texte
+        </text>
+      </svg>`;
+    this.addInDom(taskHTML, this.conteneur);
+
 
     let bloc1; let bloc2;
     let div1;  let div2;
     let x_start; let x_inter; let x_finish;
     let y_start; let y_finish;
     const column = this.path.map(row => row[0]);
+
+    // Obtenir les valeurs uniques
+    const uniqueValues = [...new Set(column)];
  
-    div1  = document.getElementById("Start");
+    div1  = containerElement.querySelector("#Start");
     const bbox = div1.getBBox();
-    for (let i of column) {
+    for (let i of uniqueValues) {
 
       // Get element task i and task i+1
       div2  = document.getElementById(this.dico_task[i]["id"]);
@@ -397,18 +500,18 @@ class PERT {
 
       const taskHTML2 = `
         <svg 
-          id     = "svg${i}" 
+          id     = "svg_${this.dico_task[i]["id"]}" 
           xmlns  = "http://www.w3.org/2000/svg"  
           width  = "${this.max(x_start, x_finish)+50}px"
           height = "${this.max(y_start, y_finish)+50}px">
           <path
             style="fill:none;stroke:#000000;stroke-width:3;"
             d="M${x_start},${y_start} C${x_inter},${y_start} ${x_inter},${y_finish} ${x_finish-15},${y_finish}"
-            id="path1"
+            id="path_${this.dico_task[i]["id"]}"
             marker-end="url(#arrowhead)"/>
         </svg>
       `;
-      this.addInDom(taskHTML2, "svg-container"); 
+      this.addInDom(taskHTML2, this.conteneur); 
     }
   }
 
@@ -515,7 +618,7 @@ class PERT {
   printTasks(tasks_obj) {
     for (let task_obj of Object.values(tasks_obj)) {
         const taskHTML  = this.htmlTaskCreation(task_obj);  // Task
-        this.addInDom(taskHTML, "task-container");    // Displays each task
+        this.addInDom(taskHTML, this.conteneur);    // Displays each task
     } 
   }
 
@@ -627,6 +730,25 @@ class PERT {
     }
   }
 
+  /**
+   * Allows you to retrieve the first and last elements of a two-dimensional array, 
+   * as soon as one of the strings or multiple lines has more than 3 elements.
+   * 
+   * @param {Array<Array<any>>} twoDList - The array with the path.
+   * @return dico :
+   *      Array<any> firstElements - The fisrt element of the chain.
+   *      Array<any> lastElements  - The last element of the chain.
+   *      Array<int> position      - The line of the element.
+   * @exemple :
+   * >>> let pert = new PERT();
+   * >>> let array2D = [["A","B"], ["E", "F", "K"], ["A", "D", "J"], ["A", "F"]];
+   * >>> pert.getFirstAndLastElements(array2D);
+   * {
+   *  "firstElements": ["E","A"], 
+   *  "lastElements": ["K", "J"], 
+   *  "position": [1, 2]
+   * }
+   */
   getFirstAndLastElements(twoDList) {
     const firstElements = [];
     const lastElements  = [];
@@ -748,6 +870,33 @@ class PERT {
   max(a, b) {
     return a > b ? a : b;
   }
+
+  reorderElements() {
+    const container = document.getElementById(this.conteneur);
+
+    // Récupère uniquement les enfants directs du conteneur
+    const children = Array.from(container.children);
+
+    // Sépare les enfants contenant un SVG ou une DIV
+    const svgDivs = [];
+    const nestedDivs = [];
+
+    children.forEach(child => {
+      if (child.querySelector('svg')) {
+        svgDivs.push(child);
+      } else if (child.querySelector('div')) {
+        nestedDivs.push(child);
+      }
+    });
+
+    const reorderedElements = [...svgDivs, ...nestedDivs];
+
+    // Réinsère les éléments dans le bon ordre
+    reorderedElements.forEach(element => {
+      container.appendChild(element); // Ceci les déplace à la fin, dans l'ordre souhaité
+    });
+  }
+
 
 
 }

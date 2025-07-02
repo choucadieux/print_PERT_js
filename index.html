@@ -10,10 +10,14 @@
 
 </head>
 <body>
-  <div id="PERT-conteneur" class="PERT-conteneur">
-    <div id="svg-container" style="position: absolute; top: 0; left: 0; z-index: 1;"></div>
-    <div id="task-container" style="position: absolute; top: 0; left: 0; z-index: 2;"></div>
+  <div style="display: flex; flex-direction: column;">
+    <div id="PERT-conteneur" class="PERT-conteneur"> 
+    </div>
+
+    <div id="PERT-conteneur2" class="PERT-conteneur">
+    </div>
   </div>
+
 
 
 
@@ -22,7 +26,7 @@
       const data_pert = {
         A : {
           id: "rs001",
-          title: "Faire la mise en place pour une tâche =",
+          title: "Faire la mise en place pour une tâche",
           duree: 30,
           mother : ["Start"],
         },
@@ -66,8 +70,57 @@
       
       const specificDate = new Date('2023-10-05');
 
-      const pert = new PERT(specificDate);
+      const pert = new PERT(specificDate, "PERT-conteneur");
       const chaine = pert.printPERT(data_pert);
+
+      const data_pert2 = {
+        A : {
+          id: "rs001",
+          title: "Nouvelle Etape",
+          duree: 30,
+          mother : ["Start"],
+        },
+        B : {
+          id: "rs002",
+          title: "Coder des super lignes",
+          duree: 30,
+          mother : ["A"],
+        },
+        C : {
+          id: "rs003",
+          title: "Avoir toujours un code propre",
+          duree: 10,
+          mother : ["A"],
+        },
+        D : {
+          id: "rs004",
+          title: "Travaillé sur le style",
+          duree: 5,
+          mother : ["C", "A", "B"]
+        },
+        E : {
+          id: "rs005",
+          title: "Faire des belles flèches",
+          duree: 74,
+          mother : ["A"],
+        },
+        F : {
+          id: "rs006",
+          title: "Attention au risque des différents bugs",
+          duree: 14,
+          mother : ["E"],
+        },
+        G : {
+          id: "rs007",
+          title: "Finir par rédiger la documentation",
+          duree: 14,
+          mother : ["F", "D"],
+        },
+      }
+
+      const pert2   = new PERT(specificDate, "PERT-conteneur2");
+      const chaine2 = pert2.printPERT(data_pert2);
+      pert2.criticalPath();
     });
   </script>
 
